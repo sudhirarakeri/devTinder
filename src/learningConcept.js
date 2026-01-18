@@ -2,8 +2,18 @@ const express = require("express");
 
 const app = express();
 
-app.get("/user/:userId/:age", (req, res) => { // http://localhost:7777/users?userId=2
+// path-to-regexp version 6 or below
+// app.get("/ab+c", (req, res)=>{
+//   res.send("Data Fetched successfully..")
+// })
+
+app.get("/users/:userId/:age", (req, res) => { // http://localhost:7777/users?userId=2
   console.log(req?.params)
+  res.send({ username: "sudhir", age: 26 });
+});
+
+app.get("/users", (req, res) => { // http://localhost:7777/users?userId=2
+  console.log(req?.query)
   res.send({ username: "sudhir", age: 26 });
 });
 
