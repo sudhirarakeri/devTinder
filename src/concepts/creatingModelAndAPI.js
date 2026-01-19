@@ -13,7 +13,7 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User created successfully..");
   } catch (err) {
-    res.status(400).send("Error occurs while creating user", err);
+    res.status(400).send("Error occurs while creating user" + err);
   }
 });
 
@@ -44,23 +44,38 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
+app.patch("/user/:userId", async (req, res) => {
   try {
-    const userId = req?.body?.userId;
+    const userId = req?.params?.userId;
     const data = req?.body;
+
+    const ALLOWED_FIELDS = ["gender", "skills", "age", "lastName", "photo"];
+
+    const isAllFieldEligible = Object.keys(data).every((key) =>
+      ALLOWED_FIELDS.includes(key),
+    );
+
+    if (!isAllFieldEligible) {
+      throw new Error("All field are not valid to update");
+    }
+
+    if (data?.skills?.length > 10) {
+      throw new Error("skills not more than 10");
+    }
 
     // const result = await User.findOneAndUpdate(userId, data);
     // findOneAndUpdate and findByIdAndUpdate both are same.
     const result = await User.findByIdAndUpdate(userId, data, {
       returnDocument: "before", // return value before update
-      upsert: true // if user not present then insert
+      runValidators: true, // validate model level schema
+      upsert: true, // if user not present then insert
     });
     console.log(result);
 
     res.send("User updated successfully.");
   } catch (err) {
-    console.log(err)
-    res.status(500).send("Something went wrong");
+    console.log(err);
+    res.status(500).send(err?.message || "Something went wrong");
   }
 });
 
