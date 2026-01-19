@@ -1,5 +1,7 @@
 const moongose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new moongose.Schema(
   {
@@ -61,5 +63,24 @@ const userSchema = new moongose.Schema(
     timestamps: true,
   },
 );
+
+userSchema.methods.getJwt = async function () {
+  const user = this;
+
+  const token = await jwt.sign({ _id: user?._id }, "DEV@TINDER", {
+    expiresIn: "7d",
+  }); // create jwt token
+
+  return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordByInput) {
+  const user = this;
+  const hashPassword = user?.password;
+
+  const isValidPassword = await bcrypt.compare(passwordByInput, hashPassword);
+
+  return isValidPassword;
+};
 
 module.exports = moongose.model("User", userSchema);

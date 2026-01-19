@@ -1,19 +1,86 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { signupValidator } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const cookies = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 
 const app = express();
 const PORT = 7777;
 app.use(express.json()); // to make request body json object to readable
+app.use(cookies()); // to make cookies object to readable
 
 app.post("/signup", async (req, res) => {
-  // creating new instance of user model
-  const user = new User(req?.body);
   try {
+    // validate body
+    signupValidator(req);
+
+    let { firstName, lastName, password, emailId } = req?.body;
+
+    // encrpty password
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    // creating new instance of user model
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: hashPassword,
+    });
+
     await user.save();
     res.send("User created successfully..");
   } catch (err) {
     res.status(400).send("Error occurs while creating user" + err);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req?.body;
+
+    const userInfo = await User.findOne({ emailId });
+
+    if (!userInfo) {
+      throw new Error("Invalid email or password");
+    }
+
+    const checkPassword = await bcrypt.compare(password, userInfo?.password);
+    if (checkPassword) {
+      const token = await jwt.sign({ _id: userInfo?._id }, "DEV@TINDER"); // create jwt token
+
+      res.cookie("token", token); // set in cookie
+      res.send("Login successfully..!");
+    } else {
+      throw new Error("Invalid email or password");
+    }
+  } catch (error) {
+    res.status(500).send(error?.message || "Something went wrong");
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  try {
+    console.log(req.cookies);
+    if (!req?.cookies?.token) { // check token is there or not
+      throw new Error("Invalid token");
+    }
+    const tokenValue = await jwt.verify(req.cookies?.token, "DEV@TINDER"); // verify token
+    const userInfo = await User.findOne({ _id: tokenValue?._id }); // fetch user
+    res.send(userInfo);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+
+app.post("/sendConnectionRequest", userAuth, async (req, res) => { // userAuth is middleware for authetication
+  try {
+    res.send(`${req.user?.firstName} sent to connection request`)
+  } catch (error) {
+    res.status(400).send(error?.message);
   }
 });
 
