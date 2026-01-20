@@ -15,7 +15,7 @@ const userSchema = new moongose.Schema(
     emailId: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // acts like index so for searching is very fast
       lowercase: true,
       trim: true,
       validate(value) {
@@ -59,13 +59,15 @@ const userSchema = new moongose.Schema(
       type: [String],
     },
     about: {
-      type: String
-    }
+      type: String,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+userSchema.index({ firstName: 1, lastName: 1 });
 
 userSchema.methods.getJwt = async function () {
   const user = this;
