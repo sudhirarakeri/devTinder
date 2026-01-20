@@ -58,6 +58,9 @@ const userSchema = new moongose.Schema(
     skills: {
       type: [String],
     },
+    about: {
+      type: String
+    }
   },
   {
     timestamps: true,
