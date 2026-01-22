@@ -8,14 +8,12 @@ authRouter.post("/signup", async (req, res) => {
   try {
     validateSignup(req); // validate body
 
-    let { firstName, lastName, password, emailId } = req?.body;
+    let { password } = req?.body;
     const hashPassword = await bcrypt.hash(password, 10); // encrpty password
 
     // creating new instance of user model
     const user = new User({
-      firstName,
-      lastName,
-      emailId,
+      ...req?.body,
       password: hashPassword,
     });
 
@@ -52,7 +50,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", async (req, res) => {
   res.cookie("token", null, {
-    expiresIn: new Date(new Date().now),
+    expires: new Date(Date.now()),
   });
   res.send("Logged successfully.");
 });
