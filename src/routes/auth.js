@@ -41,7 +41,7 @@ authRouter.post("/login", async (req, res) => {
       const token = await userInfo.getJwt();
 
       res.cookie("token", token); // set in cookie
-      res.send("Login successfully..!");
+      res.send({ message: "Login successfully..!", data: userInfo });
     } else {
       throw new Error("Invalid email or password");
     }
