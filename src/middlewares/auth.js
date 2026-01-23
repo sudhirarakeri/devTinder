@@ -20,7 +20,7 @@ const userAuth = async (req, res, next) => {
     if (!token) {
       return res.status(401).send("Please login!")
     }
-    const tokenObj = await jwt.verify(token, "DEV@TINDER");
+    const tokenObj = await jwt.verify(token, process.env.JWT_TOKEN_KEY);
 
     const { _id } = tokenObj;
 

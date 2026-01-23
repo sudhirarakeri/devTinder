@@ -2,9 +2,7 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   mongoose.set("strictQuery", true);
-  await mongoose.connect(
-    "mongodb+srv://mongoLearning:VhGJPlX1k2BVXb2D@mongodblearning.tg6kv5n.mongodb.net/devTinder",
-  );
+  await mongoose.connect(process.env.DB_CONNECTION_STRING);
 };
 
 module.exports = connectDB;
