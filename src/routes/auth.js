@@ -17,8 +17,13 @@ authRouter.post("/signup", async (req, res) => {
       password: hashPassword,
     });
 
-    await user.save();
-    res.send("User created successfully..");
+    const savedUser = await user.save();
+    const token = await savedUser.getJwt();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000)
+    }); // set in cookie
+
+    res.json({ message: "User created successfully..", data: savedUser });
   } catch (err) {
     res.status(400).send("Error occurs while creating user" + err);
   }
@@ -38,7 +43,9 @@ authRouter.post("/login", async (req, res) => {
     if (checkPassword) {
       const token = await userInfo.getJwt();
 
-      res.cookie("token", token); // set in cookie
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 8 * 3600000)
+      }); // set in cookie
       res.send({ message: "Login successfully..!", data: userInfo });
     } else {
       throw new Error("Invalid email or password");
